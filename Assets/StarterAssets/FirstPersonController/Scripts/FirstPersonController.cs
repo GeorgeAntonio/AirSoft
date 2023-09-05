@@ -11,6 +11,12 @@ namespace StarterAssets
 #endif
 	public class FirstPersonController : MonoBehaviour
 	{
+
+		///////////
+		public AudioSource audios;
+		public AudioClip Pular;
+		///////////
+
 		[Header("Player")]
 		[Tooltip("Move speed of the character in m/s")]
 		public float MoveSpeed = 4.0f;
@@ -64,7 +70,8 @@ namespace StarterAssets
 		private float _jumpTimeoutDelta;
 		private float _fallTimeoutDelta;
 
-	
+		private bool jumped = false;
+
 #if ENABLE_INPUT_SYSTEM
 		private PlayerInput _playerInput;
 #endif
@@ -72,22 +79,17 @@ namespace StarterAssets
 		private StarterAssetsInputs _input;
 		private GameObject _mainCamera;
 
-        private bool _isCrouching = false;
-        private float _normalControllerHeight;
-        private float _crouchingControllerHeight = 1.0f; // Defina a altura do controlador quando agachado
-
-
-        private const float _threshold = 0.01f;
+		private const float _threshold = 0.01f;
 
 		private bool IsCurrentDeviceMouse
 		{
 			get
 			{
-				#if ENABLE_INPUT_SYSTEM
+#if ENABLE_INPUT_SYSTEM
 				return _playerInput.currentControlScheme == "KeyboardMouse";
-				#else
+#else
 				return false;
-				#endif
+#endif
 			}
 		}
 
@@ -102,13 +104,15 @@ namespace StarterAssets
 
 		private void Start()
 		{
+			////////////////////
+			audios = GetComponent<AudioSource>();
+			////////////////////
 			_controller = GetComponent<CharacterController>();
 			_input = GetComponent<StarterAssetsInputs>();
-            _normalControllerHeight = _controller.height;
 #if ENABLE_INPUT_SYSTEM
 			_playerInput = GetComponent<PlayerInput>();
 #else
-            Debug.LogError( "Starter Assets package is missing dependencies. Please use Tools/Starter Assets/Reinstall Dependencies to fix it");
+			Debug.LogError( "Starter Assets package is missing dependencies. Please use Tools/Starter Assets/Reinstall Dependencies to fix it");
 #endif
 
 			// reset our timeouts on start
@@ -116,59 +120,33 @@ namespace StarterAssets
 			_fallTimeoutDelta = FallTimeout;
 		}
 
-        /*private void Update()
+		private void Update()
 		{
 			JumpAndGravity();
 			GroundedCheck();
 			Move();
-		}*/
-        private void Update()
-        {
-            JumpAndGravity();
-            GroundedCheck();
+		}
 
-            if (Input.GetKey(KeyCode.LeftControl)) // Use a tecla que você deseja para o agachamento
-            {
-                _controller.height = _crouchingControllerHeight;
-            }
-            else
-            {
-                _controller.height = _normalControllerHeight;
-            }
-
-            Move();
-        }
-
-
-
-        private void LateUpdate()
+		private void LateUpdate()
 		{
 			CameraRotation();
 		}
 
-        /*private void GroundedCheck()
+		private void GroundedCheck()
 		{
 			// set sphere position, with offset
 			Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
 			Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers, QueryTriggerInteraction.Ignore);
-		}*/
-        private void GroundedCheck()
-        {
-            // Use a altura correta do controlador ao verificar se o jogador está no chão
-            float groundedSphereOffset = _isCrouching ? _crouchingControllerHeight / 2 : _normalControllerHeight / 2;
-            Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - groundedSphereOffset + GroundedOffset, transform.position.z);
-            Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers, QueryTriggerInteraction.Ignore);
-        }
+		}
 
-
-        private void CameraRotation()
+		private void CameraRotation()
 		{
 			// if there is an input
 			if (_input.look.sqrMagnitude >= _threshold)
 			{
 				//Don't multiply mouse input by Time.deltaTime
 				float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
-				
+
 				_cinemachineTargetPitch += _input.look.y * RotationSpeed * deltaTimeMultiplier;
 				_rotationVelocity = _input.look.x * RotationSpeed * deltaTimeMultiplier;
 
@@ -234,6 +212,8 @@ namespace StarterAssets
 		{
 			if (Grounded)
 			{
+				jumped = true;
+
 				// reset the fall timeout timer
 				_fallTimeoutDelta = FallTimeout;
 
@@ -248,6 +228,7 @@ namespace StarterAssets
 				{
 					// the square root of H * -2 * G = how much velocity needed to reach desired height
 					_verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
+					//audios.PlayOneShot(Pular, 1);
 				}
 
 				// jump timeout
@@ -261,10 +242,17 @@ namespace StarterAssets
 				// reset the jump timeout timer
 				_jumpTimeoutDelta = JumpTimeout;
 
+				if (jumped)
+				{
+					audios.PlayOneShot(Pular, 1);
+					jumped = false;
+				}
+
 				// fall timeout
 				if (_fallTimeoutDelta >= 0.0f)
 				{
 					_fallTimeoutDelta -= Time.deltaTime;
+					//audios.PlayOneShot(Pular, 1);
 				}
 
 				// if we are not grounded, do not jump

@@ -94,7 +94,7 @@ SphereCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 101291101424938010}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 16128f33f24df5641b0f1d4f423f8736, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -103,7 +103,7 @@ SphereCollider:
     m_Bits: 0
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
-  m_ProvidesContacts: 0
+  m_ProvidesContacts: 1
   m_Enabled: 1
   serializedVersion: 3
   m_Radius: 0.5
@@ -120,7 +120,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 407ad7be892547745af3626ec38659a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  backspinDrag: 0.005
+  BackspinDrag: 0.001
+  BounceForceMultiplier: 0.5
+  DestroyAfterSeconds: 30
 --- !u!96 &3014006964033419247
 TrailRenderer:
   serializedVersion: 3
@@ -251,4 +253,4 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
